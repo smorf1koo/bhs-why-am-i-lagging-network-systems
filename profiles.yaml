@@ -1,0 +1,38 @@
+# Сетевые профили встроенного эмулятора wail_server (для справки: значения зашиты в
+# starter/server/profiles.hpp, выбираются ключом --profile).
+# Значения ОДНОСТОРОННИЕ: up = клиент -> сервер, down = сервер -> клиент.
+#   delay_ms  — средняя задержка, мс
+#   jitter_ms — стандартное отклонение задержки, мс (нормальное распределение, отрицательные -> 0;
+#               джиттер больше интервала между пакетами ПЕРЕУПОРЯДОЧИВАЕТ пакеты)
+#   loss_pct  — вероятность потери датаграммы, %
+# Клиенты нумеруются по client_id (1..16), который сервер присваивает в Welcome
+# (по requested_id из Hello, если он свободен).
+#
+# Обязательный набор для отчёта — 3 профиля ниже, 3 клиента.
+server_port: 40000
+tick_hz: 60
+
+profiles:
+  lan:
+    description: "Локальная сеть: почти нулевая задержка, видны накладные расходы самой системы"
+    default:
+      up:   { delay_ms: 1,  jitter_ms: 0.2, loss_pct: 0 }
+      down: { delay_ms: 1,  jitter_ms: 0.2, loss_pct: 0 }
+
+  wan_jittery:
+    description: "Wi-Fi / мобильная сеть: заметный джиттер и потери у всех клиентов"
+    default:
+      up:   { delay_ms: 40, jitter_ms: 15,  loss_pct: 1 }
+      down: { delay_ms: 40, jitter_ms: 15,  loss_pct: 1 }
+
+  asymmetric_bad_client:
+    description: "Все клиенты с хорошей сетью, кроме клиента 2: плохой и асимметричный канал (uplink хуже downlink)"
+    default:
+      up:   { delay_ms: 15, jitter_ms: 2,   loss_pct: 0 }
+      down: { delay_ms: 15, jitter_ms: 2,   loss_pct: 0 }
+    clients:
+      2:
+        up:   { delay_ms: 120, jitter_ms: 30, loss_pct: 3 }
+        down: { delay_ms: 60,  jitter_ms: 10, loss_pct: 1 }
+
+# Дополнительно в сервере есть профиль "none" (без эмуляции) — для отладки.
